@@ -12,7 +12,7 @@
  TODO:
  click anywhere on the window, and play a note
  if you click and drag, it'll change the pitch of the note
- Should we play a sound?
+ (CHECK) - Should we play a sound?
  */
 
 #pragma once
@@ -61,8 +61,10 @@ public:
     //==============================================================================
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
+	bool shouldPlaySound = false;
 
 private:
-    bool shouldPlaySound = true; //==============================================================================
+	Random r;
+	//==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmproject0AudioProcessor)
 };

@@ -22,6 +22,7 @@ Pfmproject0AudioProcessorEditor::Pfmproject0AudioProcessorEditor (Pfmproject0Aud
 
 Pfmproject0AudioProcessorEditor::~Pfmproject0AudioProcessorEditor()
 {
+	processor.shouldPlaySound = false; //makes sure we don't play sound when the GUI is closed
 }
 
 //==============================================================================
@@ -39,4 +40,15 @@ void Pfmproject0AudioProcessorEditor::resized()
 {
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..
+
+}
+
+void Pfmproject0AudioProcessorEditor::mouseUp(const MouseEvent &e)
+{
+	processor.shouldPlaySound = !processor.shouldPlaySound;
+}
+
+void Pfmproject0AudioProcessorEditor::mouseDown(const MouseEvent &e)
+{
+	//processor.shouldPlaySound = true;
 }
