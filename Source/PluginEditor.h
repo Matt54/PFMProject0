@@ -32,4 +32,6 @@ private:
     Pfmproject0AudioProcessor& processor;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmproject0AudioProcessorEditor)
+
+		// This is a comment from a Windows Computer
 };
