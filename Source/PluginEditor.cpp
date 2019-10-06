@@ -22,7 +22,13 @@ Pfmproject0AudioProcessorEditor::Pfmproject0AudioProcessorEditor (Pfmproject0Aud
 
 Pfmproject0AudioProcessorEditor::~Pfmproject0AudioProcessorEditor()
 {
-	processor.shouldPlaySound = false; //makes sure we don't play sound when the GUI is closed
+	//processor.shouldPlaySound = false; //makes sure we don't play sound when the GUI is closed
+	/*
+	processor.shouldPlaySound->beginChangeGesture();
+	processor.shouldPlaySound->setValueNotifyingHost(false);
+	processor.shouldPlaySound->endChangeGesture();
+	*/
+	Pfmproject0AudioProcessor::UpdateAutomatableParameter(processor.shouldPlaySound, false);
 }
 
 //==============================================================================
@@ -45,7 +51,13 @@ void Pfmproject0AudioProcessorEditor::resized()
 
 void Pfmproject0AudioProcessorEditor::mouseUp(const MouseEvent &e)
 {
-	processor.shouldPlaySound = !processor.shouldPlaySound;
+	/*
+	processor.shouldPlaySound->beginChangeGesture();
+	processor.shouldPlaySound->setValueNotifyingHost(!processor.shouldPlaySound->get());
+	processor.shouldPlaySound->endChangeGesture();
+	*/
+
+	Pfmproject0AudioProcessor::UpdateAutomatableParameter(processor.shouldPlaySound, !processor.shouldPlaySound->get());
 }
 
 void Pfmproject0AudioProcessorEditor::mouseDown(const MouseEvent &e)

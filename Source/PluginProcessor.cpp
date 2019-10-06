@@ -23,7 +23,10 @@ Pfmproject0AudioProcessor::Pfmproject0AudioProcessor()
                      #endif
                        )
 #endif
+//shouldPlaySound("ShouldPlaySoundParam", "shouldPlaySound", false)
 {
+	shouldPlaySound = new AudioParameterBool("ShouldPlaySoundParam", "shouldPlaySound", false);
+	addParameter(shouldPlaySound);
 }
 
 Pfmproject0AudioProcessor::~Pfmproject0AudioProcessor()
@@ -155,10 +158,12 @@ void Pfmproject0AudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
     {
         for(int channel=0; channel < buffer.getNumChannels(); ++channel)
         {
-            if(shouldPlaySound){
+            if(shouldPlaySound->get())
+			{
                 buffer.setSample(channel,i,r.nextFloat());
             }
-            else{
+            else
+			{
                 buffer.setSample(channel,i,0);
             }
         }
@@ -197,6 +202,13 @@ void Pfmproject0AudioProcessor::setStateInformation (const void* data, int sizeI
 {
     // You should use this method to restore your parameters from this memory block,
     // whose contents will have been created by the getStateInformation() call.
+}
+
+void Pfmproject0AudioProcessor::UpdateAutomatableParameter(RangedAudioParameter* param, float value)
+{
+	param->beginChangeGesture();
+	param->setValueNotifyingHost(value);
+	param->endChangeGesture();
 }
 
 //==============================================================================
