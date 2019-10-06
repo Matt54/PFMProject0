@@ -4,7 +4,7 @@
   <FILTER uid="1" x="0.5" y="0.1">
     <PLUGIN name="Audio Input" descriptiveName="" format="Internal" category="I/O devices"
             manufacturer="JUCE" version="1.0" file="" uid="246006c0" isInstrument="0"
-            fileTime="0" infoUpdateTime="0" numInputs="0" numOutputs="2"
+            fileTime="0" infoUpdateTime="0" numInputs="0" numOutputs="10"
             isShell="0"/>
     <STATE>0.</STATE>
     <LAYOUT>
@@ -12,7 +12,7 @@
         <BUS index="0" layout="disabled"/>
       </INPUTS>
       <OUTPUTS>
-        <BUS index="0" layout="disabled"/>
+        <BUS index="0" layout="L R"/>
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
@@ -34,23 +34,23 @@
   <FILTER uid="3" x="0.5" y="0.9">
     <PLUGIN name="Audio Output" descriptiveName="" format="Internal" category="I/O devices"
             manufacturer="JUCE" version="1.0" file="" uid="724248cb" isInstrument="0"
-            fileTime="0" infoUpdateTime="0" numInputs="0" numOutputs="0"
+            fileTime="0" infoUpdateTime="0" numInputs="2" numOutputs="0"
             isShell="0"/>
     <STATE>0.</STATE>
     <LAYOUT>
       <INPUTS>
-        <BUS index="0" layout="L R"/>
+        <BUS index="0" layout="1 2 3 4 5 6 7 8 9 10"/>
       </INPUTS>
       <OUTPUTS>
         <BUS index="0" layout="disabled"/>
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <FILTER uid="5" x="0.39125" y="0.3770161290322581" uiLastX_Normal="2713"
-          uiLastY_Normal="397" uiopen_Normal="0">
+  <FILTER uid="4" x="0.43375" y="0.3865384615384616" uiLastX_Normal="146"
+          uiLastY_Normal="230" uiopen_Normal="0">
     <PLUGIN name="PFMProject0" format="VST3" category="Instrument|Synth"
-            manufacturer="yourcompany" version="1.0.0" file="C:\Program Files\Common Files\VST3\PFMProject0.vst3"
-            uid="e9531a28" isInstrument="1" fileTime="16d7443ba89" infoUpdateTime="16d74455aeb"
+            manufacturer="yourcompany" version="1.0.0" file="/Users/macbook/Library/Audio/Plug-Ins/VST3/PFMProject0.vst3"
+            uid="acf4c214" isInstrument="1" fileTime="16d78b1cfb0" infoUpdateTime="16d78b24bab"
             numInputs="0" numOutputs="2" isShell="0"/>
     <STATE>191.VMjLgXK....O+fWarAhckI2bo8la8HRLt.iHfTlai8FYo41Y8HRUTYTK3HxO9.BOVMEUy.Ea0cVZtMEcgQWY9vSRC8Vav8lak4Fc9XCLt3hKt3hKt3hKt3hYRUUSTEETIckVwTjQisVTTgkdEYjKAQjYPQSPWgUdMcjKAQjct3hdA4hKt3hKt3hKtnTUv.UQAslXuk0UXoWUFE0YQcEV77RRC8Vav8lak4Fc9vyKVMEUy.Ea0cVZtMEcgQWY9..</STATE>
     <LAYOUT>
@@ -60,6 +60,6 @@
       </OUTPUTS>
     </LAYOUT>
   </FILTER>
-  <CONNECTION srcFilter="5" srcChannel="0" dstFilter="3" dstChannel="0"/>
-  <CONNECTION srcFilter="5" srcChannel="1" dstFilter="3" dstChannel="1"/>
+  <CONNECTION srcFilter="4" srcChannel="0" dstFilter="3" dstChannel="0"/>
+  <CONNECTION srcFilter="4" srcChannel="1" dstFilter="3" dstChannel="1"/>
 </FILTERGRAPH>
