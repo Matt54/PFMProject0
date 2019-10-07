@@ -11,7 +11,10 @@
 /*
  TODO:
  click anywhere on the window, and play a note
+ automation should update window display
  if you click and drag, it'll change the pitch of the note
+ (CHECK) - save plugin state when exiting DAW
+ (CHECK) - load plugin state when loading a session
  (CHECK) - Should we play a sound?
  */
 
@@ -62,10 +65,12 @@ public:
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 	AudioParameterBool* shouldPlaySound = nullptr; // = false;
+    AudioParameterFloat* bgColor = nullptr;
 
 	static void UpdateAutomatableParameter(RangedAudioParameter*, float value);
 
 private:
+    AudioProcessorValueTreeState apvts;
 	Random r;
 	//==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmproject0AudioProcessor)
