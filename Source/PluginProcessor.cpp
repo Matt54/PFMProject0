@@ -41,6 +41,15 @@ apvts(*this, nullptr)
     
     apvts.state = ValueTree("PFMSynthValueTree");
     
+	OwnedArray<SystemTrayIconComponent> comps;
+	comps.add(new SystemTrayIconComponent());
+
+	std::vector< std::unique_ptr<SystemTrayIconComponent> > unique_comps;
+
+	ScopedPointer<SystemTrayIconComponent> sysTrayIcon;
+	std::unique_ptr<SystemTrayIconComponent> uniqueSysTrayIcon;
+
+
 }
 
 Pfmproject0AudioProcessor::~Pfmproject0AudioProcessor()
