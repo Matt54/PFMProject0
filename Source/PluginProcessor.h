@@ -23,6 +23,23 @@
 #include "../JuceLibraryCode/JuceHeader.h"
 
 //==============================================================================
+#include <array>
+
+// 1) copy audio thread buffer to analyzer buffer
+// 2) background thread will copy analyzer buffer into fifo buffer
+// 3) when the fifo buffer is full, copy to FFT Data buffer, signal GUI to repaint() from bkgd thread
+// 4) GUI will compute FFT, generate a juce::Path from the data and draw it
+struct BufferAnalyzer
+{
+    void prepare(double sampleRate, int samplesPerBlock);
+    void cloneBuffer( const dsp::AudioBlock<float>& other );
+private:
+    std::array<AudioBuffer<float>, 2> buffers;
+    Atomic<bool> firstBuffer {true};
+    std::array<size_t, 2> samplesCopied;
+};
+
+//==============================================================================
 /**
 */
 class Pfmproject0AudioProcessor  : public AudioProcessor
@@ -72,6 +89,9 @@ public:
 private:
     AudioProcessorValueTreeState apvts;
 	Random r;
+    
+    BufferAnalyzer leftBufferAnalyzer;
+    BufferAnalyzer rightBufferAnalyzer;
 	//==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmproject0AudioProcessor)
 };
