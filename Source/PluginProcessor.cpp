@@ -18,6 +18,12 @@
 // 3) when the fifo buffer is full, copy to FFT Data buffer, signal GUI to repaint() from bkgd thread
 // 4) GUI will compute FFT, generate a juce::Path from the data and draw it
 
+BufferAnalyzer::~BufferAnalyzer()
+{
+    notify();
+    stopThread(100);
+}
+
 void BufferAnalyzer::prepare(double sampleRate, int samplesPerBlock)
 {
     firstBuffer = true;
@@ -26,6 +32,11 @@ void BufferAnalyzer::prepare(double sampleRate, int samplesPerBlock)
     
     samplesCopied[0] = 0;
     samplesCopied[1] = 0;
+    
+    fifoIndex = 0;
+    zeromem(fifoBuffer, sizeof(fifoBuffer));
+    zeromem(fftData,sizeof(fftData));
+    zeromem(curveData, sizeof(curveData));
 }
 
 void BufferAnalyzer::cloneBuffer( const dsp::AudioBlock<float>& other )
@@ -43,6 +54,102 @@ void BufferAnalyzer::cloneBuffer( const dsp::AudioBlock<float>& other )
     buffer.copyFrom(other);
     
     samplesCopied[index] = other.getNumSamples();
+    
+    notify();
+}
+
+void BufferAnalyzer::run()
+{
+    while(true)
+    {
+        wait(-1);
+        
+        DBG( "BufferAnalyzer::run() awake!!");
+            
+        if(threadShouldExit())
+        {
+            break;
+        }
+        
+        auto index = !firstBuffer.get() ? 0 : 1;
+        
+        for (int i = 0; i < samplesCopied[index]; ++i)
+        {
+            pushNextSampleIntoFifo(buffers[index].getSample(0,i));
+            /*
+             getSample is slow
+             try using a pointer
+             */
+        }
+    }
+}
+
+void BufferAnalyzer::pushNextSampleIntoFifo(float sample)
+{
+    if(fifoIndex == fftSize)
+    {
+        if(nextFFTBlockReady == false)
+        {
+            zeromem(fftData, sizeof(fftData));
+            memcpy(fftData, fifoBuffer, sizeof(fifoBuffer));
+            nextFFTBlockReady = true;
+        }
+        fifoIndex = 0;
+    }
+    fifoBuffer[fifoIndex++] = sample;
+}
+
+void BufferAnalyzer::timerCallback()
+{
+    if(nextFFTBlockReady)
+    {
+        drawNextFrameOfSpectrum();
+        nextFFTBlockReady = false;
+        repaint();
+    }
+}
+
+void BufferAnalyzer::drawNextFrameOfSpectrum()
+{
+    window.multiplyWithWindowingTable (fftData, fftSize);      // [1]
+    forwardFFT.performFrequencyOnlyForwardTransform (fftData); // [2]
+    auto mindB = -100.0f;
+    auto maxdB =    0.0f;
+    for (int i = 0; i < numPoints; ++i)                        // [3]
+    {
+        auto skewedProportionX = 1.0f - std::exp (std::log (1.0f - i / (float) numPoints) * 0.2f);
+        auto fftDataIndex = jlimit (0, fftSize / 2, (int) (skewedProportionX * fftSize / 2));
+        auto level = jmap (jlimit (mindB, maxdB, Decibels::gainToDecibels (fftData[fftDataIndex])
+                                               - Decibels::gainToDecibels ((float) fftSize)),
+                           mindB, maxdB, 0.0f, 1.0f);
+        curveData[i] = level;                                  // [4]
+    }
+}
+
+void BufferAnalyzer::paint(Graphics& g)
+{
+    float w = getWidth();
+    float h = getHeight();
+    Path fftCurve;
+    fftCurve.startNewSubPath(0,jmap(curveData[0],
+                                    0.f,1.f, //from range
+                                    h, 0.f));
+    
+    for( int i = 1; i < numPoints; ++i)
+    {
+        auto data = curveData[i];
+        auto endX = jmap((float)i,
+                         0.f,float(numPoints), //from range
+                         0.f,w); //to range
+        auto endY = jmap(data,
+                         0.f,1.f, //from range
+                         h, 0.f); //to range
+        fftCurve.lineTo(endX,endY);
+    }
+    
+    g.fillAll(Colours::black);
+    g.setColour(Colours::white);
+    g.strokePath( fftCurve, PathStrokeType(1) );
 }
 
 //==============================================================================
@@ -82,8 +189,6 @@ apvts(*this, nullptr)
 
 	ScopedPointer<SystemTrayIconComponent> sysTrayIcon;
 	std::unique_ptr<SystemTrayIconComponent> uniqueSysTrayIcon;
-
-
 }
 
 Pfmproject0AudioProcessor::~Pfmproject0AudioProcessor()
@@ -217,6 +322,8 @@ void Pfmproject0AudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
     {
         for(int channel=0; channel < buffer.getNumChannels(); ++channel)
         {
+             //buffer.setSample(channel,i,r.nextFloat());
+            
             if(shouldPlaySound->get())
 			{
                 buffer.setSample(channel,i,r.nextFloat());
@@ -225,6 +332,7 @@ void Pfmproject0AudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBu
 			{
                 buffer.setSample(channel,i,0);
             }
+             
         }
     }
     

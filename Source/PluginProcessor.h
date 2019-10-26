@@ -29,14 +29,48 @@
 // 2) background thread will copy analyzer buffer into fifo buffer
 // 3) when the fifo buffer is full, copy to FFT Data buffer, signal GUI to repaint() from bkgd thread
 // 4) GUI will compute FFT, generate a juce::Path from the data and draw it
-struct BufferAnalyzer
+struct BufferAnalyzer : Thread, Timer, Component
 {
+    BufferAnalyzer(): Thread("BufferAnalyzer")
+    {
+        startThread();
+        startTimerHz(20);
+        //startThread();
+        //startTimerHz(20);
+    }
+    ~BufferAnalyzer();
+    
     void prepare(double sampleRate, int samplesPerBlock);
     void cloneBuffer( const dsp::AudioBlock<float>& other );
+    void run() override;
+    void timerCallback() override;
+    void paint(Graphics& g) override;
 private:
     std::array<AudioBuffer<float>, 2> buffers;
     Atomic<bool> firstBuffer {true};
     std::array<size_t, 2> samplesCopied;
+    
+    //==============================
+    enum
+    {
+        fftOrder  = 11,
+        fftSize   = 1 << fftOrder,
+        numPoints = 512
+    };
+    
+    float fifoBuffer [fftSize];
+    float fftData [2 * fftSize];
+    int fifoIndex = 0;
+    
+    void pushNextSampleIntoFifo(float sample);
+    
+    bool nextFFTBlockReady = false;
+    float curveData [numPoints];
+    
+    dsp::FFT forwardFFT{fftOrder};
+    dsp::WindowingFunction<float> window{fftSize, dsp::WindowingFunction<float>::hann};
+    
+    void drawNextFrameOfSpectrum();
 };
 
 //==============================================================================
@@ -86,12 +120,13 @@ public:
 
 	static void UpdateAutomatableParameter(RangedAudioParameter*, float value);
 
+    BufferAnalyzer leftBufferAnalyzer;
+    BufferAnalyzer rightBufferAnalyzer;
 private:
     AudioProcessorValueTreeState apvts;
 	Random r;
     
-    BufferAnalyzer leftBufferAnalyzer;
-    BufferAnalyzer rightBufferAnalyzer;
+    
 	//==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Pfmproject0AudioProcessor)
 };
