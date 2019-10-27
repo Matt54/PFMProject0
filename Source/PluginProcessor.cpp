@@ -18,6 +18,14 @@
 // 3) when the fifo buffer is full, copy to FFT Data buffer, signal GUI to repaint() from bkgd thread
 // 4) GUI will compute FFT, generate a juce::Path from the data and draw it
 
+BufferAnalyzer::BufferAnalyzer() : Thread("BufferAnalyzer")
+{
+    startThread();
+    startTimerHz(20);
+    fftCurve.preallocateSpace(3 * numPoints);
+    
+}
+
 BufferAnalyzer::~BufferAnalyzer()
 {
     notify();
@@ -30,8 +38,8 @@ void BufferAnalyzer::prepare(double sampleRate, int samplesPerBlock)
     buffers[0].setSize(1, samplesPerBlock);
     buffers[1].setSize(1, samplesPerBlock);
     
-    samplesCopied[0] = 0;
-    samplesCopied[1] = 0;
+    samplesCopied[0].set(0);
+    samplesCopied[1].set(0);
     
     fifoIndex = 0;
     zeromem(fifoBuffer, sizeof(fifoBuffer));
@@ -53,7 +61,7 @@ void BufferAnalyzer::cloneBuffer( const dsp::AudioBlock<float>& other )
     dsp::AudioBlock<float> buffer(buffers[index]);
     buffer.copyFrom(other);
     
-    samplesCopied[index] = other.getNumSamples();
+    samplesCopied[index].set( other.getNumSamples() );
     
     notify();
 }
@@ -73,8 +81,9 @@ void BufferAnalyzer::run()
         
         auto index = !firstBuffer.get() ? 0 : 1;
         
+        auto numSamples = samplesCopied[index].get();
         auto* readPtr = buffers[index].getReadPointer(0);
-        for (int i = 0; i < samplesCopied[index]; ++i)
+        for (int i = 0; i < numSamples; ++i)
         {
             //pushNextSampleIntoFifo(buffers[index].getSample(0,i));
             /*
@@ -90,7 +99,8 @@ void BufferAnalyzer::pushNextSampleIntoFifo(float sample)
 {
     if(fifoIndex == fftSize)
     {
-        if(nextFFTBlockReady == false)
+        auto ready = nextFFTBlockReady.get();
+        if(!ready)
         {
             zeromem(fftData, sizeof(fftData));
             memcpy(fftData, fifoBuffer, sizeof(fifoBuffer));
@@ -103,7 +113,8 @@ void BufferAnalyzer::pushNextSampleIntoFifo(float sample)
 
 void BufferAnalyzer::timerCallback()
 {
-    if(nextFFTBlockReady)
+    auto ready = nextFFTBlockReady.get();
+    if(ready)
     {
         drawNextFrameOfSpectrum();
         nextFFTBlockReady = false;
@@ -130,9 +141,11 @@ void BufferAnalyzer::drawNextFrameOfSpectrum()
 
 void BufferAnalyzer::paint(Graphics& g)
 {
+    fftCurve.clear();
+    
     float w = getWidth();
     float h = getHeight();
-    Path fftCurve;
+    
     fftCurve.startNewSubPath(0,jmap(curveData[0],
                                     0.f,1.f, //from range
                                     h, 0.f));
@@ -150,7 +163,35 @@ void BufferAnalyzer::paint(Graphics& g)
     }
     
     g.fillAll(Colours::black);
-    g.setColour(Colours::white);
+    
+    //g.setColour(Colours::white);
+    
+    ColourGradient cg;
+    
+    /*
+     white red orange yellow green blue violet
+     */
+    auto colors = std::vector<Colour>
+    {
+        Colours::violet,
+        Colours::blue,
+        Colours::green,
+        Colours::yellow,
+        Colours::orange,
+        Colours::red,
+        Colours::white
+    };
+    
+    for(int i = 0; i < colors.size(); ++i)
+    {
+        cg.addColour( double(i) / double( colors.size() - 1 ),colors[i] );
+    }
+    
+    cg.point1 = {0,h};
+    cg.point2 = {0,0};
+    
+    g.setGradientFill(cg);
+    
     g.strokePath( fftCurve, PathStrokeType(1) );
 }
 

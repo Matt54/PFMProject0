@@ -31,13 +31,7 @@
 // 4) GUI will compute FFT, generate a juce::Path from the data and draw it
 struct BufferAnalyzer : Thread, Timer, Component
 {
-    BufferAnalyzer(): Thread("BufferAnalyzer")
-    {
-        startThread();
-        startTimerHz(20);
-        //startThread();
-        //startTimerHz(20);
-    }
+    BufferAnalyzer();
     ~BufferAnalyzer();
     
     void prepare(double sampleRate, int samplesPerBlock);
@@ -48,7 +42,7 @@ struct BufferAnalyzer : Thread, Timer, Component
 private:
     std::array<AudioBuffer<float>, 2> buffers;
     Atomic<bool> firstBuffer {true};
-    std::array<size_t, 2> samplesCopied;
+    std::array<Atomic<size_t>, 2> samplesCopied;
     
     //==============================
     enum
@@ -64,13 +58,14 @@ private:
     
     void pushNextSampleIntoFifo(float sample);
     
-    bool nextFFTBlockReady = false;
+    Atomic<bool> nextFFTBlockReady{false};
     float curveData [numPoints];
     
     dsp::FFT forwardFFT{fftOrder};
     dsp::WindowingFunction<float> window{fftSize, dsp::WindowingFunction<float>::hann};
     
     void drawNextFrameOfSpectrum();
+    Path fftCurve;
 };
 
 //==============================================================================
