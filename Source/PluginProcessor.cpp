@@ -11,8 +11,9 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
 
+
+//==============================================================================
 // 1) copy audio thread buffer to analyzer buffer
 // 2) background thread will copy analyzer buffer into fifo buffer
 // 3) when the fifo buffer is full, copy to FFT Data buffer, signal GUI to repaint() from bkgd thread
