@@ -56,15 +56,26 @@ private:
 
 //==============================================================================
 
+struct BufferAnalyzer : Component, Timer
+{
+    BufferAnalyzer();
+    ~BufferAnalyzer();
+    void prepare(double sampleRate, int samplesPerBlock){}
+    void cloneBuffer( const dsp::AudioBlock<float>& other ){}
+    void timerCallback() override;
+    void paint(Graphics& g) override;
+};
+
+//==============================================================================
 
 // 1) copy audio thread buffer to analyzer buffer
 // 2) background thread will copy analyzer buffer into fifo buffer
 // 3) when the fifo buffer is full, copy to FFT Data buffer, signal GUI to repaint() from bkgd thread
 // 4) GUI will compute FFT, generate a juce::Path from the data and draw it
-struct BufferAnalyzer : Thread, Timer, Component
+struct BufferAnalyzer2 : Thread, Timer, Component
 {
-    BufferAnalyzer();
-    ~BufferAnalyzer();
+    BufferAnalyzer2();
+    ~BufferAnalyzer2();
     
     void prepare(double sampleRate, int samplesPerBlock);
     void cloneBuffer( const dsp::AudioBlock<float>& other );
@@ -147,8 +158,8 @@ public:
 
 	static void UpdateAutomatableParameter(RangedAudioParameter*, float value);
 
-    BufferAnalyzer leftBufferAnalyzer;
-    BufferAnalyzer rightBufferAnalyzer;
+    BufferAnalyzer2 leftBufferAnalyzer;
+    BufferAnalyzer2 rightBufferAnalyzer;
 private:
     AudioProcessorValueTreeState apvts;
 	Random r;

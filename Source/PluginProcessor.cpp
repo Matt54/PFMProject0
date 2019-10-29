@@ -19,7 +19,7 @@
 // 3) when the fifo buffer is full, copy to FFT Data buffer, signal GUI to repaint() from bkgd thread
 // 4) GUI will compute FFT, generate a juce::Path from the data and draw it
 
-BufferAnalyzer::BufferAnalyzer() : Thread("BufferAnalyzer")
+BufferAnalyzer2::BufferAnalyzer2() : Thread("BufferAnalyzer")
 {
     startThread();
     startTimerHz(20);
@@ -27,13 +27,13 @@ BufferAnalyzer::BufferAnalyzer() : Thread("BufferAnalyzer")
     
 }
 
-BufferAnalyzer::~BufferAnalyzer()
+BufferAnalyzer2::~BufferAnalyzer2()
 {
     notify();
     stopThread(100);
 }
 
-void BufferAnalyzer::prepare(double sampleRate, int samplesPerBlock)
+void BufferAnalyzer2::prepare(double sampleRate, int samplesPerBlock)
 {
     firstBuffer = true;
     buffers[0].setSize(1, samplesPerBlock);
@@ -48,7 +48,7 @@ void BufferAnalyzer::prepare(double sampleRate, int samplesPerBlock)
     zeromem(curveData, sizeof(curveData));
 }
 
-void BufferAnalyzer::cloneBuffer( const dsp::AudioBlock<float>& other )
+void BufferAnalyzer2::cloneBuffer( const dsp::AudioBlock<float>& other )
 {
     auto whichIndex = firstBuffer.get();
     auto index = whichIndex ? 0 : 1;
@@ -67,7 +67,7 @@ void BufferAnalyzer::cloneBuffer( const dsp::AudioBlock<float>& other )
     notify();
 }
 
-void BufferAnalyzer::run()
+void BufferAnalyzer2::run()
 {
     while(true)
     {
@@ -96,7 +96,7 @@ void BufferAnalyzer::run()
     }
 }
 
-void BufferAnalyzer::pushNextSampleIntoFifo(float sample)
+void BufferAnalyzer2::pushNextSampleIntoFifo(float sample)
 {
     if(fifoIndex == fftSize)
     {
@@ -112,7 +112,7 @@ void BufferAnalyzer::pushNextSampleIntoFifo(float sample)
     fifoBuffer[fifoIndex++] = sample;
 }
 
-void BufferAnalyzer::timerCallback()
+void BufferAnalyzer2::timerCallback()
 {
     auto ready = nextFFTBlockReady.get();
     if(ready)
@@ -123,7 +123,7 @@ void BufferAnalyzer::timerCallback()
     }
 }
 
-void BufferAnalyzer::drawNextFrameOfSpectrum()
+void BufferAnalyzer2::drawNextFrameOfSpectrum()
 {
     window.multiplyWithWindowingTable (fftData, fftSize);      // [1]
     forwardFFT.performFrequencyOnlyForwardTransform (fftData); // [2]
@@ -140,7 +140,7 @@ void BufferAnalyzer::drawNextFrameOfSpectrum()
     }
 }
 
-void BufferAnalyzer::paint(Graphics& g)
+void BufferAnalyzer2::paint(Graphics& g)
 {
     fftCurve.clear();
     
